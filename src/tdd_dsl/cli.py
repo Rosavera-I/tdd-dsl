@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .emitters.pytest import emit_pytest
+from .emitters.vitest import emit_vitest
 from .parser import parse_text
 
 
@@ -20,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
-    emit.add_argument("--target", choices=["python"], required=True)
+    emit.add_argument("--target", choices=["python", "typescript"], required=True)
 
     args = parser.parse_args(argv)
     if args.command == "validate":
@@ -56,6 +57,9 @@ def _emit(path: Path, target: str) -> int:
     assert result.document is not None
     if target == "python":
         print(emit_pytest(result.document), end="")
+        return 0
+    if target == "typescript":
+        print(emit_vitest(result.document), end="")
         return 0
 
     print(f"unsupported target: {target}")
