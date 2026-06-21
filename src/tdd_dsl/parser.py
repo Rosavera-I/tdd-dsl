@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 
 from .ast import Case, Diagnostic, Document, Step, Target
+from .validator import validate_document
 
 
 _TARGET_RE = re.compile(r"^target\s+([A-Za-z_][A-Za-z0-9_-]*)\s+(.+)$")
@@ -119,6 +120,10 @@ class _Parser:
             self.diagnostics.append(Diagnostic(1, 1, "document requires at least one case"))
 
         document = None if self.diagnostics else Document(suite=suite, targets=tuple(targets), cases=tuple(cases))
+        if document is not None:
+            self.diagnostics.extend(validate_document(document))
+            if self.diagnostics:
+                document = None
         return ParseResult(document=document, diagnostics=tuple(self.diagnostics))
 
     def _parse_case(self, header: _Line, raw_name: str) -> Case | None:

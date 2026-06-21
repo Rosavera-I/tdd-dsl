@@ -1,0 +1,17 @@
+suite "Calculator"
+target ruby "calculator"
+target python "calculator"
+
+case "adds two numbers":
+  given input:
+    {"bad-key": 2}
+  when call "add"
+  then equals:
+    5
+
+case "adds two numbers":
+  given input:
+    {"a": 2, "b": 3}
+  when call "add"
+  then equals:
+    5

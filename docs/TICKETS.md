@@ -21,7 +21,7 @@ Acceptance:
 
 ## Ticket 3: TypeScript Vitest Emitter
 
-Status: queued
+Status: done
 
 Acceptance:
 
@@ -31,7 +31,7 @@ Acceptance:
 
 ## Ticket 4: Semantic Validator Expansion
 
-Status: queued
+Status: done
 
 Acceptance:
 
