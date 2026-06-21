@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tdd-dsl"
+version = "0.1.0"
+description = "LLM-friendly TDD DSL for polyglot test generation."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Rosavera" }
+]
+
+[project.scripts]
+tdd-dsl = "tdd_dsl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

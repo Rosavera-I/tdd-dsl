@@ -12,8 +12,8 @@ The project starts with a deliberately small core:
 ## Quick Start
 
 ```bash
-python -m tdd_dsl validate tests/fixtures/valid_minimal.tdd
-python -m unittest discover -s tests
+PYTHONPATH=src python -m tdd_dsl validate tests/fixtures/valid_minimal.tdd
+PYTHONPATH=src python -m unittest discover -s tests
 ```
 
 ## Example

@@ -21,6 +21,8 @@ Acceptance:
 
 ## Ticket 3: TypeScript Vitest Emitter
 
+Status: queued
+
 Acceptance:
 
 - Emit deterministic Vitest code.
@@ -28,6 +30,8 @@ Acceptance:
 - Include tests for generated imports and `expect(...).toEqual(...)`.
 
 ## Ticket 4: Semantic Validator Expansion
+
+Status: queued
 
 Acceptance:
 
@@ -38,6 +42,8 @@ Acceptance:
 
 ## Ticket 5: Golden Fixture Harness
 
+Status: queued
+
 Acceptance:
 
 - Add golden output files per backend.
@@ -46,8 +52,21 @@ Acceptance:
 
 ## Ticket 6: Mutation Smoke Tests
 
+Status: queued
+
 Acceptance:
 
 - Add simple mutation fixtures that remove `then`, corrupt JSON, and rename `when`.
 - Verify each mutation fails for the intended reason.
 - Document what this does and does not prove.
+
+## Ticket 7: Project Metadata and Local Workflow
+
+Status: done
+
+Acceptance:
+
+- Add Python project metadata for future packaging.
+- Expose the intended `tdd-dsl` console script in metadata.
+- Document the no-install local workflow that works with standard-library Python.
+- Include a test that checks packaging metadata and script registration.
