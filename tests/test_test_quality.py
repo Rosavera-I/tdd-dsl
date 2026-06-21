@@ -18,6 +18,12 @@ class TestQualityTests(unittest.TestCase):
         self.assertIn("invalid JSON", parser_test)
         self.assertIn("requires then equals", parser_test)
 
+    def test_emitter_tests_assert_generated_call_and_assertion(self) -> None:
+        emitter_test = (ROOT / "tests" / "test_pytest_emitter.py").read_text(encoding="utf-8")
+
+        self.assertIn("calculator.add(a=2, b=3)", emitter_test)
+        self.assertIn("assert result == 5", emitter_test)
+
 
 if __name__ == "__main__":
     unittest.main()

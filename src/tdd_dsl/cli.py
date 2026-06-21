@@ -6,6 +6,7 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
+from .emitters.pytest import emit_pytest
 from .parser import parse_text
 
 
@@ -17,9 +18,15 @@ def main(argv: list[str] | None = None) -> int:
     validate.add_argument("file", type=Path)
     validate.add_argument("--json", action="store_true", help="print parsed AST as JSON")
 
+    emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
+    emit.add_argument("file", type=Path)
+    emit.add_argument("--target", choices=["python"], required=True)
+
     args = parser.parse_args(argv)
     if args.command == "validate":
         return _validate(args.file, args.json)
+    if args.command == "emit":
+        return _emit(args.file, args.target)
 
     parser.error(f"unknown command: {args.command}")
     return 2
@@ -37,6 +44,22 @@ def _validate(path: Path, print_json: bool) -> int:
     else:
         print(f"{path}: ok")
     return 0
+
+
+def _emit(path: Path, target: str) -> int:
+    result = parse_text(path.read_text(encoding="utf-8"))
+    if result.diagnostics:
+        for diagnostic in result.diagnostics:
+            print(f"{path}:{diagnostic.line}:{diagnostic.column}: {diagnostic.message}")
+        return 1
+
+    assert result.document is not None
+    if target == "python":
+        print(emit_pytest(result.document), end="")
+        return 0
+
+    print(f"unsupported target: {target}")
+    return 2
 
 
 def _to_jsonable(value: Any) -> Any:
