@@ -23,6 +23,11 @@ intentional emitter change needs new expected output:
 PYTHONPATH=src TDD_DSL_UPDATE_GOLDENS=1 python -m unittest tests.test_golden_fixtures
 ```
 
+Mutation smoke fixtures intentionally break valid DSL examples by removing
+`then`, corrupting JSON, and renaming `when`. They prove common malformed edits
+produce targeted parser diagnostics; they do not prove generated tests catch
+implementation-level code mutations.
+
 ## Example
 
 ```text

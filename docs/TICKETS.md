@@ -52,7 +52,7 @@ Acceptance:
 
 ## Ticket 6: Mutation Smoke Tests
 
-Status: queued
+Status: done
 
 Acceptance:
 
