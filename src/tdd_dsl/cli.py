@@ -6,6 +6,7 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
+from .emitters.junit import emit_junit
 from .emitters.pytest import emit_pytest
 from .emitters.vitest import emit_vitest
 from .parser import parse_text
@@ -28,11 +29,11 @@ def main(argv: list[str] | None = None) -> int:
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
-    emit.add_argument("--target", choices=["python", "typescript"], required=True)
+    emit.add_argument("--target", choices=["python", "typescript", "java"], required=True)
 
     run = subcommands.add_parser("run", help="generate and run tests from a .tdd file")
     run.add_argument("file", type=Path)
-    run.add_argument("--target", choices=["python", "typescript"], required=True)
+    run.add_argument("--target", choices=["python", "typescript", "java"], required=True)
     run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
 
     discover = subcommands.add_parser("discover", help="discover and validate .tdd files matching a pattern")
@@ -89,6 +90,9 @@ def _emit(path: Path, target: str) -> int:
         return 0
     if target == "typescript":
         print(emit_vitest(result.document), end="")
+        return 0
+    if target == "java":
+        print(emit_junit(result.document, target_name="java", source_path=str(path) if path else None), end="")
         return 0
 
     print(f"unsupported target: {target}")

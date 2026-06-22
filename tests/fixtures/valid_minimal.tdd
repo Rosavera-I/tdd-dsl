@@ -1,5 +1,7 @@
 suite "Calculator"
 target python "calculator"
+target typescript "calculator"
+target java "Calculator"
 
 case "adds two numbers":
   given input:

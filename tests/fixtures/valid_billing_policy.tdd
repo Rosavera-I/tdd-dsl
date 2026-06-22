@@ -1,6 +1,7 @@
 suite "Billing policy contract"
 target python "billing_policy"
 target typescript "billing-policy"
+target java "com.example.BillingPolicy"
 
 case "grandfathers loyal customers onto the pro cap":
   given input:
