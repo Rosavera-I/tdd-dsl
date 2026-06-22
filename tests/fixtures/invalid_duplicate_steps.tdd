@@ -1,0 +1,14 @@
+suite "Calculator"
+target python "calculator"
+
+case "adds two numbers":
+  given input:
+    {"a": 2, "b": 3}
+  given input:
+    {"a": 4, "b": 5}
+  when call "add"
+  when call "sum"
+  then equals:
+    5
+  then equals:
+    9

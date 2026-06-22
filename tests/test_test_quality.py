@@ -17,6 +17,7 @@ class TestQualityTests(unittest.TestCase):
         self.assertIn("diagnostic.message", parser_test)
         self.assertIn("invalid JSON", parser_test)
         self.assertIn("requires then equals", parser_test)
+        self.assertIn("duplicate given input", parser_test)
 
     def test_emitter_tests_assert_generated_call_and_assertion(self) -> None:
         emitter_test = (ROOT / "tests" / "test_pytest_emitter.py").read_text(encoding="utf-8")

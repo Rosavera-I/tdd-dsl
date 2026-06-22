@@ -168,7 +168,26 @@ class _Parser:
             self._error(line, "expected 'given input:', 'when call \"name\"', or 'then equals:'")
             self.index += 1
 
-        found = {step.kind for step in steps}
+        first_by_kind: dict[str, Step] = {}
+        labels_by_kind = {
+            "given_input": "given input",
+            "when_call": "when call",
+            "then_equals": "then equals",
+        }
+        for step in steps:
+            first = first_by_kind.get(step.kind)
+            if first is None:
+                first_by_kind[step.kind] = step
+                continue
+            self.diagnostics.append(
+                Diagnostic(
+                    step.line,
+                    step.column,
+                    f"case '{name}' has duplicate {labels_by_kind[step.kind]}; first declared at line {first.line}",
+                )
+            )
+
+        found = set(first_by_kind)
         for kind, label in (
             ("given_input", "given input"),
             ("when_call", "when call"),

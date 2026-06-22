@@ -54,6 +54,16 @@ class ParserTests(unittest.TestCase):
         messages = [diagnostic.message for diagnostic in result.diagnostics]
         self.assertIn("case 'adds two numbers' requires then equals", messages)
 
+    def test_duplicate_steps_report_targeted_diagnostics(self) -> None:
+        result = parse_text((FIXTURES / "invalid_duplicate_steps.tdd").read_text(encoding="utf-8"))
+
+        self.assertFalse(result.ok)
+        self.assertIsNone(result.document)
+        messages = [diagnostic.message for diagnostic in result.diagnostics]
+        self.assertIn("case 'adds two numbers' has duplicate given input; first declared at line 5", messages)
+        self.assertIn("case 'adds two numbers' has duplicate when call; first declared at line 9", messages)
+        self.assertIn("case 'adds two numbers' has duplicate then equals; first declared at line 11", messages)
+
     def test_bad_json_reports_diagnostic_without_traceback(self) -> None:
         result = parse_text((FIXTURES / "invalid_bad_json.tdd").read_text(encoding="utf-8"))
 
