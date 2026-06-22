@@ -51,3 +51,47 @@ case "flags enterprise usage before charging":
 ## Source Compatibility
 
 The parser should preserve line and column for every diagnostic. Future AST spans can extend this without changing emitted JSON field names.
+
+## Validation Output
+
+`validate` defaults to human-readable diagnostics:
+
+```text
+tests/fixtures/invalid_missing_then.tdd:4:1: case 'adds two numbers' requires then equals
+```
+
+`validate --json` is reserved for the parsed AST of valid documents.
+
+`validate --format json` is reserved for editor and tool diagnostics. It emits a stable LSP-compatible payload:
+
+```json
+{
+  "uri": "file:///workspace/tests/fixtures/invalid_missing_then.tdd",
+  "diagnostics": [
+    {
+      "range": {
+        "start": {"line": 3, "character": 0},
+        "end": {"line": 3, "character": 1}
+      },
+      "severity": 1,
+      "source": "tdd-dsl",
+      "message": "case 'adds two numbers' requires then equals"
+    }
+  ]
+}
+```
+
+Valid files return the same envelope with an empty `diagnostics` array. Parser diagnostics use one-based line and column values internally. The JSON diagnostics convert those locations to LSP's zero-based `line` and `character` fields.
+
+## CLI Commands
+
+```bash
+tdd-dsl validate [--json] [--format text|json] FILE
+tdd-dsl emit --target python|typescript FILE
+tdd-dsl run --target python|typescript [--cwd DIR] FILE
+```
+
+The Python runner writes a temporary generated test file, prepends `--cwd` to
+`PYTHONPATH`, and maps generated assertion failures back to the nearest DSL case
+line. The TypeScript runner shells out to `npx vitest run` and expects Vitest to
+be available in the selected working directory.

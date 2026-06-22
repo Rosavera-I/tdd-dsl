@@ -25,7 +25,8 @@ The MVP supports:
 - `given input`, `when call`, and `then equals` steps.
 - JSON payloads for inputs and expected values.
 - Validation diagnostics with line and column.
-- A Python pytest emitter.
+- Python pytest and TypeScript Vitest emitters.
+- A Python runner that executes generated tests with source-mapped failure output.
 
 The MVP intentionally does not support:
 
@@ -33,14 +34,16 @@ The MVP intentionally does not support:
 - Arbitrary fixtures or setup hooks.
 - Snapshot files.
 - Multiple assertion styles per case.
-- Runtime execution adapters.
+- Runtime execution adapters beyond the small Python runner.
 
 ## Modules
 
 - `tdd_dsl.ast`: immutable dataclasses for suite, target, case, steps, and diagnostics.
 - `tdd_dsl.parser`: line-oriented parser and semantic validation.
 - `tdd_dsl.emitters.pytest`: deterministic pytest code generation.
-- `tdd_dsl.cli`: `validate` and `emit` commands.
+- `tdd_dsl.emitters.vitest`: deterministic Vitest code generation.
+- `tdd_dsl.runner`: temporary-file execution for generated tests.
+- `tdd_dsl.cli`: `validate`, `emit`, and `run` commands.
 
 ## LLM-Friendly Constraints
 
@@ -54,9 +57,9 @@ The MVP intentionally does not support:
 
 Backends should be small, pure functions over the AST. Each backend owns language idioms, but the AST stays language-neutral. Planned backends:
 
-- Python pytest.
-- TypeScript Vitest.
-- Java JUnit.
+- Python pytest: implemented.
+- TypeScript Vitest: implemented.
+- Java JUnit: planned.
 
 ## Testing Strategy
 
@@ -64,3 +67,4 @@ Backends should be small, pure functions over the AST. Each backend owns languag
 - Fixture tests keep DSL examples realistic.
 - Meta-tests assert the suite contains negative fixtures and diagnostic assertions.
 - Emitter tests compare deterministic output substrings and generated syntax shape.
+- Runner tests execute generated tests against temporary target modules and assert DSL source mapping on failure.

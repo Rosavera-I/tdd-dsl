@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -44,6 +45,7 @@ def _run_python(source_path: Path, generated: str, cwd: Path) -> RunResult:
         completed = subprocess.run(
             [sys.executable, str(generated_path)],
             cwd=cwd,
+            env=_subprocess_env_with_pythonpath(cwd),
             text=True,
             capture_output=True,
             check=False,
@@ -80,6 +82,16 @@ def _python_executable_source(generated: str) -> str:
         + "        if _name.startswith(\"test_\") and callable(_value):\n"
         + "            _value()\n"
     )
+
+
+def _subprocess_env_with_pythonpath(cwd: Path) -> dict[str, str]:
+    env = os.environ.copy()
+    existing = env.get("PYTHONPATH")
+    entries = [str(cwd)]
+    if existing:
+        entries.append(existing)
+    env["PYTHONPATH"] = os.pathsep.join(entries)
+    return env
 
 
 def _map_python_failure(generated_path: Path, output: str) -> str:

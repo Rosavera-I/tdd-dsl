@@ -90,3 +90,15 @@ Acceptance:
 - Detect repeated `given input`, `when call`, and `then equals` steps per case.
 - Report targeted diagnostics with the first declaration line.
 - Include a negative fixture and meta-test coverage for duplicate-step assertions.
+
+## Ticket 11: Executable Runner Import Path
+
+Status: done
+
+Acceptance:
+
+- Provide `python -m tdd_dsl run --target python FILE`.
+- Execute generated Python tests against modules in the requested `--cwd`.
+- Preserve the caller's existing `PYTHONPATH` while prepending the target working directory.
+- Map generated assertion failures back to the DSL case line.
+- Include runner tests that prove both successful execution and source-mapped failure output.

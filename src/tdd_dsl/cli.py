@@ -19,6 +19,12 @@ def main(argv: list[str] | None = None) -> int:
     validate = subcommands.add_parser("validate", help="validate a .tdd file")
     validate.add_argument("file", type=Path)
     validate.add_argument("--json", action="store_true", help="print parsed AST as JSON")
+    validate.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="print validation diagnostics as text or LSP-compatible JSON",
+    )
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
@@ -31,7 +37,9 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     if args.command == "validate":
-        return _validate(args.file, args.json)
+        if args.json and args.format == "json":
+            parser.error("validate --json cannot be combined with --format json")
+        return _validate(args.file, args.json, args.format)
     if args.command == "emit":
         return _emit(args.file, args.target)
     if args.command == "run":
@@ -41,12 +49,19 @@ def main(argv: list[str] | None = None) -> int:
     return 2
 
 
-def _validate(path: Path, print_json: bool) -> int:
+def _validate(path: Path, print_json: bool, output_format: str) -> int:
     result = parse_text(path.read_text(encoding="utf-8"))
     if result.diagnostics:
+        if output_format == "json":
+            print(json.dumps(_lsp_diagnostics_payload(path, result.diagnostics), indent=2, sort_keys=True))
+            return 1
         for diagnostic in result.diagnostics:
             print(f"{path}:{diagnostic.line}:{diagnostic.column}: {diagnostic.message}")
         return 1
+
+    if output_format == "json":
+        print(json.dumps(_lsp_diagnostics_payload(path, ()), indent=2, sort_keys=True))
+        return 0
 
     if print_json and result.document is not None:
         print(json.dumps(_to_jsonable(result.document), indent=2, sort_keys=True))
@@ -78,6 +93,39 @@ def _run(path: Path, target: str, cwd: Path | None) -> int:
     result = run_file(path, target, cwd=cwd)
     print(result.output, end="")
     return result.exit_code
+
+
+def _lsp_diagnostics_payload(path: Path, diagnostics: tuple[Any, ...]) -> dict[str, Any]:
+    return {
+        "diagnostics": [_to_lsp_diagnostic(path, diagnostic) for diagnostic in diagnostics],
+    }
+
+
+def _to_lsp_diagnostic(path: Path, diagnostic: Any) -> dict[str, Any]:
+    return {
+        "file": str(path),
+        "line": diagnostic.line,
+        "column": diagnostic.column,
+        "severity": "error",
+        "message": diagnostic.message,
+        "suggestedFix": _suggested_fix(diagnostic.message),
+    }
+
+
+def _suggested_fix(message: str) -> str:
+    if "requires then equals" in message:
+        return "Add a 'then equals:' step with the expected JSON payload."
+    if "requires given input" in message:
+        return "Add a 'given input:' step with a JSON payload."
+    if "requires when call" in message:
+        return 'Add a \'when call "functionName"\' step.'
+    if "invalid JSON" in message:
+        return "Fix the JSON payload so it parses cleanly."
+    if "duplicate" in message:
+        return "Keep one declaration and remove or rename the duplicate."
+    if "unsupported target" in message:
+        return "Use one of the supported targets: python or typescript."
+    return "Review the DSL syntax near this location."
 
 
 def _to_jsonable(value: Any) -> Any:

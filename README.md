@@ -13,6 +13,7 @@ The project starts with a deliberately small core:
 
 ```bash
 PYTHONPATH=src python -m tdd_dsl validate tests/fixtures/valid_minimal.tdd
+PYTHONPATH=src python -m tdd_dsl emit --target python tests/fixtures/valid_minimal.tdd
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
@@ -55,6 +56,18 @@ That single contract emits executable pytest and Vitest tests. The fixtures unde
 `tests/fixtures/` intentionally include both tiny parser examples and richer
 showcase contracts so the test suite doubles as adoption documentation.
 
+The runner can also execute a contract against local implementation code:
+
+```bash
+PYTHONPATH=src python -m tdd_dsl run --target python --cwd path/to/project path/to/project/contract.tdd
+```
+
+When generated Python assertions fail, the runner prefixes the traceback with the
+DSL case line that produced the failed test.
+
 ## Status
 
-This is an initial spike repo. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/SPEC.md](docs/SPEC.md), and [docs/TICKETS.md](docs/TICKETS.md).
+This repo has reached an initial implementation milestone: parser, validator,
+Python and TypeScript emitters, golden fixtures, validation JSON, and a Python
+runner are covered by tests. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
+[docs/SPEC.md](docs/SPEC.md), and [docs/TICKETS.md](docs/TICKETS.md).
