@@ -14,6 +14,7 @@ The project starts with a deliberately small core:
 ```bash
 PYTHONPATH=src python -m tdd_dsl validate tests/fixtures/valid_minimal.tdd
 PYTHONPATH=src python -m tdd_dsl emit --target python tests/fixtures/valid_minimal.tdd
+PYTHONPATH=src python -m tdd_dsl emit --target java tests/fixtures/valid_minimal.tdd
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
@@ -35,6 +36,7 @@ implementation-level code mutations.
 suite "Billing policy contract"
 target python "billing_policy"
 target typescript "billing-policy"
+target java "com.example.BillingPolicy"
 
 case "flags enterprise usage before charging":
   given input:

@@ -87,11 +87,41 @@ Valid files return the same envelope with an empty `diagnostics` array. Parser d
 
 ```bash
 tdd-dsl validate [--json] [--format text|json] FILE
-tdd-dsl emit --target python|typescript FILE
+tdd-dsl emit --target python|typescript|java FILE
 tdd-dsl run --target python|typescript [--cwd DIR] FILE
+tdd-dsl discover PATTERN [--format text|json]
 ```
 
 The Python runner writes a temporary generated test file, prepends `--cwd` to
 `PYTHONPATH`, and maps generated assertion failures back to the nearest DSL case
 line. The TypeScript runner shells out to `npx vitest run` and expects Vitest to
 be available in the selected working directory.
+
+## Java Output
+
+The Java emitter generates JUnit 5 tests with idiomatic naming:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.example.BillingPolicy;
+
+public class BillingPolicyTest {
+
+    @Test
+    @DisplayName("flags enterprise usage before charging")
+    public void testFlagsEnterpriseUsageBeforeCharging() {
+        var input = java.util.Map.of(
+            "account", java.util.Map.of("plan", "team", "yearsActive", 1),
+            "usage", java.util.Map.of("projects", 91, "seats", 42)
+        );
+        var result = BillingPolicy.quoteSubscription(input);
+        assertEquals("enterprise", result.getTier());
+        assertEquals(null, result.getMonthlyUsd());
+        assertEquals(true, result.getRequiresReview());
+        assertEquals("seat_count", result.getReason());
+    }
+}
+```

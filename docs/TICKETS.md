@@ -102,3 +102,17 @@ Acceptance:
 - Support directory recursion (e.g., `discover "tests/**/*.tdd"`).
 - Return non-zero exit code if any file fails validation.
 - Include tests for discovery with nested directories and mixed valid/invalid files.
+
+## Ticket 12: Java JUnit 5 Emitter
+
+Status: done
+
+Acceptance:
+
+- Emit JUnit 5 tests from valid AST with proper imports and annotations.
+- Generate @Test and @DisplayName annotations for readable test names.
+- Convert test names to idiomatic camelCase method names.
+- Support Map.of() for object inputs, List.of() for array inputs.
+- Generate multiple assertEquals calls for object expected values.
+- Add --target java support to CLI emit command.
+- Include comprehensive test coverage and golden fixtures.
