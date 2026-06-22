@@ -26,11 +26,36 @@ class GoldenFixtureTests(unittest.TestCase):
             golden=GOLDENS / "typescript" / "valid_typescript.test.ts",
         )
 
+    def test_showcase_contract_emits_documentary_python(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "python"),
+            golden=GOLDENS / "python" / "valid_billing_policy.py",
+        )
+
+    def test_showcase_python_output_compiles(self) -> None:
+        source = _emit_fixture("valid_billing_policy.tdd", "python")
+
+        compile(source, "valid_billing_policy.py", "exec")
+
+    def test_showcase_contract_emits_documentary_typescript(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "typescript"),
+            golden=GOLDENS / "typescript" / "valid_billing_policy.test.ts",
+        )
+
     def test_python_output_is_stable_across_repeated_emits(self) -> None:
         first = _emit_fixture("valid_minimal.tdd", "python")
         second = _emit_fixture("valid_minimal.tdd", "python")
 
         self.assertEqual(first, second)
+
+    def test_showcase_contract_is_stable_across_repeated_emits(self) -> None:
+        for target in ("python", "typescript"):
+            with self.subTest(target=target):
+                first = _emit_fixture("valid_billing_policy.tdd", target)
+                second = _emit_fixture("valid_billing_policy.tdd", target)
+
+                self.assertEqual(first, second)
 
     def assertGolden(self, actual: str, golden: Path) -> None:
         if os.environ.get(UPDATE_ENV) == "1":

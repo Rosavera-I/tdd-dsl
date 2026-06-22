@@ -19,15 +19,24 @@ identifier    = [A-Za-z_][A-Za-z0-9_-]*
 ## Example
 
 ```text
-suite "Calculator"
-target python "calculator"
+suite "Billing policy contract"
+target python "billing_policy"
+target typescript "billing-policy"
 
-case "adds two numbers":
+case "flags enterprise usage before charging":
   given input:
-    {"a": 2, "b": 3}
-  when call "add"
+    {
+      "account": {"plan": "team", "yearsActive": 1},
+      "usage": {"projects": 91, "seats": 42}
+    }
+  when call "quoteSubscription"
   then equals:
-    5
+    {
+      "tier": "enterprise",
+      "monthlyUsd": null,
+      "requiresReview": true,
+      "reason": "seat_count"
+    }
 ```
 
 ## Semantics

@@ -24,6 +24,24 @@ class TestQualityTests(unittest.TestCase):
         self.assertIn("calculator.add(a=2, b=3)", emitter_test)
         self.assertIn("assert result == 5", emitter_test)
 
+    def test_showcase_fixture_sells_polyglot_contracts_not_only_calculators(self) -> None:
+        showcase = (ROOT / "tests" / "fixtures" / "valid_billing_policy.tdd").read_text(encoding="utf-8")
+
+        self.assertIn('suite "Billing policy contract"', showcase)
+        self.assertIn('target python "billing_policy"', showcase)
+        self.assertIn('target typescript "billing-policy"', showcase)
+        self.assertIn("requiresReview", showcase)
+        self.assertIn("seat_count", showcase)
+
+    def test_golden_suite_proves_one_contract_can_emit_two_ecosystems(self) -> None:
+        python_golden = ROOT / "tests" / "goldens" / "python" / "valid_billing_policy.py"
+        typescript_golden = ROOT / "tests" / "goldens" / "typescript" / "valid_billing_policy.test.ts"
+
+        self.assertTrue(python_golden.exists())
+        self.assertTrue(typescript_golden.exists())
+        self.assertIn("quoteSubscription", python_golden.read_text(encoding="utf-8"))
+        self.assertIn("quoteSubscription", typescript_golden.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

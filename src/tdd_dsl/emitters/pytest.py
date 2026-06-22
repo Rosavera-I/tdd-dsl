@@ -19,8 +19,8 @@ def emit_pytest(document: Document, target_name: str = "python") -> str:
     for case in document.cases:
         function_name = _unique_name(f"test_{_slug(case.name)}", used_names)
         lines.append(f"def {function_name}():")
-        lines.append(f"    result = {target.module}.{_call_name(case)}({_call_arguments(case)})")
-        lines.append(f"    assert result == {_python_literal(_expected_value(case))}")
+        lines.extend(_result_assignment(target, case))
+        lines.extend(_assertion(_expected_value(case)))
         lines.append("")
         lines.append("")
 
@@ -44,14 +44,48 @@ def _call_name(case: Case) -> str:
     return value
 
 
-def _call_arguments(case: Case) -> str:
+def _result_assignment(target: Target, case: Case) -> list[str]:
+    call = f"{target.module}.{_call_name(case)}"
+    arguments = _call_arguments(case)
+    inline = f"    result = {call}({', '.join(arguments)})"
+    if len(inline) <= 88 and all("\n" not in argument for argument in arguments):
+        return [inline]
+
+    lines = [f"    result = {call}("]
+    for argument in arguments:
+        rendered = argument.splitlines()
+        lines.append(f"        {rendered[0]}")
+        lines.extend(f"        {line}" for line in rendered[1:])
+        lines[-1] += ","
+    lines.append("    )")
+    return lines
+
+
+def _assertion(expected: object) -> list[str]:
+    literal = _python_literal(expected)
+    inline = f"    assert result == {literal}"
+    if len(inline) <= 88 and "\n" not in literal:
+        return [inline]
+
+    if isinstance(expected, (dict, list, tuple)):
+        literal = _python_block_literal(expected)
+    else:
+        literal = _python_literal(expected, width=72)
+    literal_lines = literal.splitlines()
+    return [
+        f"    assert result == {literal_lines[0]}",
+        *[f"    {line}" for line in literal_lines[1:]],
+    ]
+
+
+def _call_arguments(case: Case) -> list[str]:
     step = case.step("given_input")
     if step is None:
         raise ValueError(f"case {case.name!r} is missing given input")
     value = step.value
     if isinstance(value, dict) and all(isinstance(key, str) and key.isidentifier() and not keyword.iskeyword(key) for key in value):
-        return ", ".join(f"{key}={_python_literal(item)}" for key, item in value.items())
-    return _python_literal(value)
+        return [f"{key}={_python_literal(item)}" for key, item in value.items()]
+    return [_python_literal(value)]
 
 
 def _expected_value(case: Case) -> object:
@@ -61,8 +95,51 @@ def _expected_value(case: Case) -> object:
     return step.value
 
 
-def _python_literal(value: object) -> str:
-    return pformat(value, width=88, sort_dicts=False)
+def _python_literal(value: object, width: int = 88) -> str:
+    return pformat(value, width=width, sort_dicts=False)
+
+
+def _python_block_literal(value: object, indent: int = 0) -> str:
+    spaces = " " * indent
+    child_spaces = " " * (indent + 4)
+
+    if isinstance(value, dict):
+        if not value:
+            return "{}"
+        lines = ["{"]
+        for key, item in value.items():
+            rendered = _python_block_literal(item, indent + 4).splitlines()
+            lines.append(f"{child_spaces}{key!r}: {rendered[0]}")
+            lines.extend(f"{child_spaces}{line}" for line in rendered[1:])
+            lines[-1] += ","
+        lines.append(f"{spaces}}}")
+        return "\n".join(lines)
+
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        lines = ["["]
+        for item in value:
+            rendered = _python_block_literal(item, indent + 4).splitlines()
+            lines.append(f"{child_spaces}{rendered[0]}")
+            lines.extend(f"{child_spaces}{line}" for line in rendered[1:])
+            lines[-1] += ","
+        lines.append(f"{spaces}]")
+        return "\n".join(lines)
+
+    if isinstance(value, tuple):
+        if not value:
+            return "()"
+        lines = ["("]
+        for item in value:
+            rendered = _python_block_literal(item, indent + 4).splitlines()
+            lines.append(f"{child_spaces}{rendered[0]}")
+            lines.extend(f"{child_spaces}{line}" for line in rendered[1:])
+            lines[-1] += ","
+        lines.append(f"{spaces})")
+        return "\n".join(lines)
+
+    return repr(value)
 
 
 def _slug(value: str) -> str:

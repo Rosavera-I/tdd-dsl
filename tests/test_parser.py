@@ -24,6 +24,28 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(case.step("when_call").value, "add")
         self.assertEqual(case.step("then_equals").value, 5)
 
+    def test_showcase_fixture_reads_like_a_real_contract(self) -> None:
+        result = parse_text((FIXTURES / "valid_billing_policy.tdd").read_text(encoding="utf-8"))
+
+        self.assertTrue(result.ok)
+        self.assertIsNotNone(result.document)
+        assert result.document is not None
+        self.assertEqual(result.document.suite, "Billing policy contract")
+        self.assertEqual(
+            [(target.language, target.module) for target in result.document.targets],
+            [("python", "billing_policy"), ("typescript", "billing-policy")],
+        )
+        self.assertEqual(
+            [case.name for case in result.document.cases],
+            [
+                "grandfathers loyal customers onto the pro cap",
+                "flags enterprise usage before charging",
+            ],
+        )
+        review_case = result.document.cases[1]
+        self.assertEqual(review_case.step("then_equals").value["requiresReview"], True)
+        self.assertEqual(review_case.step("then_equals").value["reason"], "seat_count")
+
     def test_missing_then_reports_diagnostic(self) -> None:
         result = parse_text((FIXTURES / "invalid_missing_then.tdd").read_text(encoding="utf-8"))
 
