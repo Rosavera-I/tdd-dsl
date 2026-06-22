@@ -70,3 +70,23 @@ Acceptance:
 - Expose the intended `tdd-dsl` console script in metadata.
 - Document the no-install local workflow that works with standard-library Python.
 - Include a test that checks packaging metadata and script registration.
+
+## Ticket 8: Artisanal Test Suite Polish
+
+Status: done
+
+Acceptance:
+
+- Add a richer showcase fixture that reads like a real product contract.
+- Keep golden outputs documentary enough to sell the DSL shape to humans and LLMs.
+- Ensure golden fixtures prove one contract can emit to both supported ecosystems.
+
+## Ticket 9: Duplicate Step Diagnostics
+
+Status: done
+
+Acceptance:
+
+- Detect repeated `given input`, `when call`, and `then equals` steps per case.
+- Report targeted diagnostics with the first declaration line.
+- Include a negative fixture and meta-test coverage for duplicate-step assertions.

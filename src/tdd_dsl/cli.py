@@ -9,6 +9,7 @@ from typing import Any
 from .emitters.pytest import emit_pytest
 from .emitters.vitest import emit_vitest
 from .parser import parse_text
+from .runner import run_file
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -23,11 +24,18 @@ def main(argv: list[str] | None = None) -> int:
     emit.add_argument("file", type=Path)
     emit.add_argument("--target", choices=["python", "typescript"], required=True)
 
+    run = subcommands.add_parser("run", help="generate and run tests from a .tdd file")
+    run.add_argument("file", type=Path)
+    run.add_argument("--target", choices=["python", "typescript"], required=True)
+    run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
+
     args = parser.parse_args(argv)
     if args.command == "validate":
         return _validate(args.file, args.json)
     if args.command == "emit":
         return _emit(args.file, args.target)
+    if args.command == "run":
+        return _run(args.file, args.target, args.cwd)
 
     parser.error(f"unknown command: {args.command}")
     return 2
@@ -64,6 +72,12 @@ def _emit(path: Path, target: str) -> int:
 
     print(f"unsupported target: {target}")
     return 2
+
+
+def _run(path: Path, target: str, cwd: Path | None) -> int:
+    result = run_file(path, target, cwd=cwd)
+    print(result.output, end="")
+    return result.exit_code
 
 
 def _to_jsonable(value: Any) -> Any:

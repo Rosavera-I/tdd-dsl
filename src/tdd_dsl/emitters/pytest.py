@@ -4,10 +4,12 @@ import keyword
 import re
 from pprint import pformat
 
+from pathlib import Path
+
 from tdd_dsl.ast import Case, Document, Target
 
 
-def emit_pytest(document: Document, target_name: str = "python") -> str:
+def emit_pytest(document: Document, target_name: str = "python", source_path: str | Path | None = None) -> str:
     target = _find_target(document, target_name)
     lines = [
         f"import {target.module}",
@@ -18,6 +20,8 @@ def emit_pytest(document: Document, target_name: str = "python") -> str:
     used_names: set[str] = set()
     for case in document.cases:
         function_name = _unique_name(f"test_{_slug(case.name)}", used_names)
+        if source_path is not None:
+            lines.append(_source_map_comment(source_path, case))
         lines.append(f"def {function_name}():")
         lines.extend(_result_assignment(target, case))
         lines.extend(_assertion(_expected_value(case)))
@@ -163,3 +167,7 @@ def _unique_name(base: str, used: set[str]) -> str:
     name = f"{base}_{index}"
     used.add(name)
     return name
+
+
+def _source_map_comment(source_path: str | Path, case: Case) -> str:
+    return f"# tdd-dsl: source={Path(source_path).as_posix()} line={case.line} case={case.name!r}"
