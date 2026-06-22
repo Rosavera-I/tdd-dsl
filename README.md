@@ -16,6 +16,13 @@ PYTHONPATH=src python -m tdd_dsl validate tests/fixtures/valid_minimal.tdd
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
+Golden emitter fixtures are checked by the unit suite. Refresh them only when an
+intentional emitter change needs new expected output:
+
+```bash
+PYTHONPATH=src TDD_DSL_UPDATE_GOLDENS=1 python -m unittest tests.test_golden_fixtures
+```
+
 ## Example
 
 ```text

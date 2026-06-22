@@ -42,7 +42,7 @@ Acceptance:
 
 ## Ticket 5: Golden Fixture Harness
 
-Status: queued
+Status: done
 
 Acceptance:
 
