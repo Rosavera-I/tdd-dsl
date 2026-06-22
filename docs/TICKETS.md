@@ -91,14 +91,14 @@ Acceptance:
 - Report targeted diagnostics with the first declaration line.
 - Include a negative fixture and meta-test coverage for duplicate-step assertions.
 
-## Ticket 11: Executable Runner Import Path
+## Ticket 11: Multi-File Suite Discovery
 
 Status: done
 
 Acceptance:
 
-- Provide `python -m tdd_dsl run --target python FILE`.
-- Execute generated Python tests against modules in the requested `--cwd`.
-- Preserve the caller's existing `PYTHONPATH` while prepending the target working directory.
-- Map generated assertion failures back to the DSL case line.
-- Include runner tests that prove both successful execution and source-mapped failure output.
+- Add `tdd-dsl discover PATTERN` command that finds all `.tdd` files matching a glob pattern.
+- Validate each discovered file and emit aggregated report.
+- Support directory recursion (e.g., `discover "tests/**/*.tdd"`).
+- Return non-zero exit code if any file fails validation.
+- Include tests for discovery with nested directories and mixed valid/invalid files.

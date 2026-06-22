@@ -35,6 +35,10 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--target", choices=["python", "typescript"], required=True)
     run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
 
+    discover = subcommands.add_parser("discover", help="discover and validate .tdd files matching a pattern")
+    discover.add_argument("pattern", help="glob pattern to match .tdd files (e.g., 'tests/**/*.tdd')")
+    discover.add_argument("--format", choices=["text", "json"], default="text", help="output format")
+
     args = parser.parse_args(argv)
     if args.command == "validate":
         if args.json and args.format == "json":
@@ -44,6 +48,8 @@ def main(argv: list[str] | None = None) -> int:
         return _emit(args.file, args.target)
     if args.command == "run":
         return _run(args.file, args.target, args.cwd)
+    if args.command == "discover":
+        return _discover(args.pattern, args.format)
 
     parser.error(f"unknown command: {args.command}")
     return 2
@@ -126,6 +132,80 @@ def _suggested_fix(message: str) -> str:
     if "unsupported target" in message:
         return "Use one of the supported targets: python or typescript."
     return "Review the DSL syntax near this location."
+
+
+def _discover(pattern: str, output_format: str) -> int:
+    import fnmatch
+    import os
+
+    # Find all matching .tdd files
+    matched_files: list[Path] = []
+    if "**" in pattern:
+        # Recursive glob
+        base_dir = Path(pattern.split("/**")[0]) if pattern.startswith("/") else Path(".")
+        rest_pattern = pattern.split("/**", 1)[1] if "/**" in pattern else ""
+        for root, _dirs, files in os.walk(base_dir):
+            for filename in files:
+                if fnmatch.fnmatch(filename, "*.tdd"):
+                    full_path = Path(root) / filename
+                    # Check if it matches the full pattern
+                    try:
+                        rel_path = full_path.relative_to(Path.cwd())
+                        if fnmatch.fnmatch(str(rel_path), pattern) or fnmatch.fnmatch(str(full_path), pattern):
+                            matched_files.append(full_path)
+                    except ValueError:
+                        # Path not relative to cwd, use absolute check only
+                        if fnmatch.fnmatch(str(full_path), pattern):
+                            matched_files.append(full_path)
+    else:
+        # Simple glob
+        base_dir = Path(pattern).parent if not pattern.endswith("/") else Path(pattern)
+        if not base_dir.exists():
+            base_dir = Path(".")
+        glob_pattern = Path(pattern).name if not pattern.endswith("/") else "*.tdd"
+        matched_files = list(Path(base_dir).glob(glob_pattern))
+
+    # Validate each file
+    results: list[dict[str, Any]] = []
+    any_failed = False
+
+    for file_path in sorted(matched_files):
+        result = parse_text(file_path.read_text(encoding="utf-8"))
+        if result.diagnostics:
+            any_failed = True
+            results.append({
+                "file": str(file_path),
+                "status": "error",
+                "diagnostics": [
+                    {
+                        "line": d.line,
+                        "column": d.column,
+                        "message": d.message,
+                    }
+                    for d in result.diagnostics
+                ],
+            })
+        else:
+            results.append({
+                "file": str(file_path),
+                "status": "ok",
+                "case_count": len(result.document.cases) if result.document else 0,
+            })
+
+    # Output results
+    if output_format == "json":
+        print(json.dumps({"files": results, "total": len(results), "failed": sum(1 for r in results if r["status"] == "error")}, indent=2, sort_keys=True))
+    else:
+        for r in results:
+            if r["status"] == "error":
+                print(f"{r['file']}: FAILED ({len(r['diagnostics'])} diagnostic(s))")
+                for d in r["diagnostics"]:
+                    print(f"  {d['line']}:{d['column']}: {d['message']}")
+            else:
+                print(f"{r['file']}: OK ({r['case_count']} case(s))")
+        print(f"\nTotal: {len(results)} file(s), {sum(1 for r in results if r['status'] == 'error')} failed")
+
+    return 1 if any_failed else 0
 
 
 def _to_jsonable(value: Any) -> Any:
