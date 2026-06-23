@@ -2,8 +2,12 @@ from pathlib import Path
 import os
 import unittest
 
+from tdd_dsl.emitters.gotest import emit_gotest
+from tdd_dsl.emitters.odin import emit_odin
 from tdd_dsl.emitters.pytest import emit_pytest
+from tdd_dsl.emitters.rust import emit_rust
 from tdd_dsl.emitters.vitest import emit_vitest
+from tdd_dsl.emitters.xunit import emit_xunit
 from tdd_dsl.parser import parse_text
 
 
@@ -24,6 +28,12 @@ class GoldenFixtureTests(unittest.TestCase):
         self.assertGolden(
             actual=_emit_fixture("valid_typescript.tdd", "typescript"),
             golden=GOLDENS / "typescript" / "valid_typescript.test.ts",
+        )
+
+    def test_go_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "go"),
+            golden=GOLDENS / "go" / "valid_minimal_test.go",
         )
 
     def test_showcase_contract_emits_documentary_python(self) -> None:
@@ -57,6 +67,42 @@ class GoldenFixtureTests(unittest.TestCase):
 
                 self.assertEqual(first, second)
 
+    def test_rust_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "rust"),
+            golden=GOLDENS / "rust" / "valid_minimal.rs",
+        )
+
+    def test_rust_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "rust")
+        second = _emit_fixture("valid_minimal.tdd", "rust")
+
+        self.assertEqual(first, second)
+
+    def test_odin_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "odin"),
+            golden=GOLDENS / "odin" / "valid_minimal.odin",
+        )
+
+    def test_odin_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "odin")
+        second = _emit_fixture("valid_minimal.tdd", "odin")
+
+        self.assertEqual(first, second)
+
+    def test_csharp_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "csharp"),
+            golden=GOLDENS / "csharp" / "valid_minimal.cs",
+        )
+
+    def test_csharp_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "csharp")
+        second = _emit_fixture("valid_minimal.tdd", "csharp")
+
+        self.assertEqual(first, second)
+
     def assertGolden(self, actual: str, golden: Path) -> None:
         if os.environ.get(UPDATE_ENV) == "1":
             golden.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +118,14 @@ def _emit_fixture(name: str, target: str) -> str:
         return emit_pytest(result.document)
     if target == "typescript":
         return emit_vitest(result.document)
+    if target == "go":
+        return emit_gotest(result.document, target_name="go", source_path=f"tests/fixtures/{name}")
+    if target == "rust":
+        return emit_rust(result.document, target_name="rust", source_path=f"tests/fixtures/{name}")
+    if target == "odin":
+        return emit_odin(result.document, target_name="odin", source_path=f"tests/fixtures/{name}")
+    if target == "csharp":
+        return emit_xunit(result.document, target_name="csharp", source_path=f"tests/fixtures/{name}")
     raise ValueError(f"unsupported test target: {target}")
 
 

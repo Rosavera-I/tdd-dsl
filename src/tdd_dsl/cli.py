@@ -6,9 +6,13 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
+from .emitters.gotest import emit_gotest
 from .emitters.junit import emit_junit
+from .emitters.odin import emit_odin
 from .emitters.pytest import emit_pytest
+from .emitters.rust import emit_rust
 from .emitters.vitest import emit_vitest
+from .emitters.xunit import emit_xunit
 from .parser import parse_text
 from .runner import run_file
 
@@ -29,11 +33,11 @@ def main(argv: list[str] | None = None) -> int:
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
-    emit.add_argument("--target", choices=["python", "typescript", "java"], required=True)
+    emit.add_argument("--target", choices=["python", "typescript", "java", "go", "rust", "odin", "csharp"], required=True)
 
     run = subcommands.add_parser("run", help="generate and run tests from a .tdd file")
     run.add_argument("file", type=Path)
-    run.add_argument("--target", choices=["python", "typescript", "java"], required=True)
+    run.add_argument("--target", choices=["python", "typescript", "java", "go", "rust", "odin", "csharp"], required=True)
     run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
 
     discover = subcommands.add_parser("discover", help="discover and validate .tdd files matching a pattern")
@@ -93,6 +97,18 @@ def _emit(path: Path, target: str) -> int:
         return 0
     if target == "java":
         print(emit_junit(result.document, target_name="java", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "go":
+        print(emit_gotest(result.document, target_name="go", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "rust":
+        print(emit_rust(result.document, target_name="rust", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "odin":
+        print(emit_odin(result.document, target_name="odin", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "csharp":
+        print(emit_xunit(result.document, target_name="csharp", source_path=str(path) if path else None), end="")
         return 0
 
     print(f"unsupported target: {target}")
