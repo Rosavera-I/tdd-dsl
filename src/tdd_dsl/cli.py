@@ -8,9 +8,11 @@ from typing import Any
 
 from .emitters.gotest import emit_gotest
 from .emitters.junit import emit_junit
+from .emitters.kotlin import emit_kotlin
 from .emitters.odin import emit_odin
 from .emitters.pytest import emit_pytest
 from .emitters.rust import emit_rust
+from .emitters.swift import emit_swift
 from .emitters.vitest import emit_vitest
 from .emitters.xunit import emit_xunit
 from .parser import parse_text
@@ -33,11 +35,11 @@ def main(argv: list[str] | None = None) -> int:
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
-    emit.add_argument("--target", choices=["python", "typescript", "java", "go", "rust", "odin", "csharp"], required=True)
+    emit.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift"], required=True)
 
     run = subcommands.add_parser("run", help="generate and run tests from a .tdd file")
     run.add_argument("file", type=Path)
-    run.add_argument("--target", choices=["python", "typescript", "java", "go", "rust", "odin", "csharp"], required=True)
+    run.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift"], required=True)
     run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
 
     discover = subcommands.add_parser("discover", help="discover and validate .tdd files matching a pattern")
@@ -109,6 +111,12 @@ def _emit(path: Path, target: str) -> int:
         return 0
     if target == "csharp":
         print(emit_xunit(result.document, target_name="csharp", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "swift":
+        print(emit_swift(result.document, target_name="swift", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "kotlin":
+        print(emit_kotlin(result.document, target_name="kotlin", source_path=str(path) if path else None), end="")
         return 0
 
     print(f"unsupported target: {target}")

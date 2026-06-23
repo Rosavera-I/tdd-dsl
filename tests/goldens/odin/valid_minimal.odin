@@ -2,7 +2,7 @@ package calculator
 
 import "core:testing"
 
-// Source: tests/fixtures/valid_minimal.tdd:10
+// Source: tests/fixtures/valid_minimal.tdd:12
 @(test)
 test_adds_two_numbers :: proc(t: ^testing.T) {
     // Input: {'a': 2, 'b': 3}

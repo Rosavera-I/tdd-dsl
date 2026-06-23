@@ -3,9 +3,11 @@ import os
 import unittest
 
 from tdd_dsl.emitters.gotest import emit_gotest
+from tdd_dsl.emitters.kotlin import emit_kotlin
 from tdd_dsl.emitters.odin import emit_odin
 from tdd_dsl.emitters.pytest import emit_pytest
 from tdd_dsl.emitters.rust import emit_rust
+from tdd_dsl.emitters.swift import emit_swift
 from tdd_dsl.emitters.vitest import emit_vitest
 from tdd_dsl.emitters.xunit import emit_xunit
 from tdd_dsl.parser import parse_text
@@ -103,6 +105,30 @@ class GoldenFixtureTests(unittest.TestCase):
 
         self.assertEqual(first, second)
 
+    def test_swift_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "swift"),
+            golden=GOLDENS / "swift" / "valid_minimal.swift",
+        )
+
+    def test_swift_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "swift")
+        second = _emit_fixture("valid_minimal.tdd", "swift")
+
+        self.assertEqual(first, second)
+
+    def test_kotlin_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "kotlin"),
+            golden=GOLDENS / "kotlin" / "valid_minimal.kt",
+        )
+
+    def test_kotlin_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "kotlin")
+        second = _emit_fixture("valid_minimal.tdd", "kotlin")
+
+        self.assertEqual(first, second)
+
     def assertGolden(self, actual: str, golden: Path) -> None:
         if os.environ.get(UPDATE_ENV) == "1":
             golden.parent.mkdir(parents=True, exist_ok=True)
@@ -126,6 +152,10 @@ def _emit_fixture(name: str, target: str) -> str:
         return emit_odin(result.document, target_name="odin", source_path=f"tests/fixtures/{name}")
     if target == "csharp":
         return emit_xunit(result.document, target_name="csharp", source_path=f"tests/fixtures/{name}")
+    if target == "swift":
+        return emit_swift(result.document, target_name="swift", source_path=f"tests/fixtures/{name}")
+    if target == "kotlin":
+        return emit_kotlin(result.document, target_name="kotlin", source_path=f"tests/fixtures/{name}")
     raise ValueError(f"unsupported test target: {target}")
 
 

@@ -5,7 +5,7 @@ import keyword
 from .ast import Case, Diagnostic, Document
 
 
-SUPPORTED_TARGETS = frozenset({"python", "typescript", "java", "go", "rust", "odin", "csharp"})
+SUPPORTED_TARGETS = frozenset({"python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift"})
 
 
 def validate_document(document: Document) -> tuple[Diagnostic, ...]:

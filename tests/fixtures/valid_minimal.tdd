@@ -6,6 +6,8 @@ target go "calculator"
 target rust "calculator"
 target odin "calculator"
 target csharp "Calculator"
+target swift "calculator"
+target kotlin "Calculator"
 
 case "adds two numbers":
   given input:

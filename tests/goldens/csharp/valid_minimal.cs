@@ -3,7 +3,7 @@ using Xunit;
 public class CalculatorTests
 {
 
-    // Source: tests/fixtures/valid_minimal.tdd:10
+    // Source: tests/fixtures/valid_minimal.tdd:12
     [Fact]
     public void testAddsTwoNumbers()
     {

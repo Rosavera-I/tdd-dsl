@@ -6,7 +6,7 @@ import (
     "testing"
 )
 
-// Source: tests/fixtures/valid_minimal.tdd:10
+// Source: tests/fixtures/valid_minimal.tdd:12
 func TestAddsTwoNumbers(t *testing.T) {
     input := map[string]interface{}{"a": 2, "b": 3}
     result := add(input)

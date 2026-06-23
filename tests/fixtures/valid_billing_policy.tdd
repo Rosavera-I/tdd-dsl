@@ -2,6 +2,7 @@ suite "Billing policy contract"
 target python "billing_policy"
 target typescript "billing-policy"
 target java "com.example.BillingPolicy"
+target kotlin "com.example.BillingPolicy"
 target odin "billing_policy"
 
 case "grandfathers loyal customers onto the pro cap":

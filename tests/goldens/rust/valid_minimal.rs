@@ -1,6 +1,6 @@
 use calculator::*;
 
-// Source: tests/fixtures/valid_minimal.tdd:10
+// Source: tests/fixtures/valid_minimal.tdd:12
 #[test]
 fn test_adds_two_numbers() {
     // Input: {'a': 2, 'b': 3}
