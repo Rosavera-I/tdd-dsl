@@ -43,6 +43,7 @@ The MVP intentionally does not support:
 - `tdd_dsl.emitters.pytest`: deterministic pytest code generation.
 - `tdd_dsl.emitters.vitest`: deterministic Vitest code generation.
 - `tdd_dsl.runner`: temporary-file execution for generated tests.
+- `tdd_dsl.runtime`: HTTP mock server lifecycle harness for generated tests.
 - `tdd_dsl.cli`: `validate`, `emit`, and `run` commands.
 
 ## LLM-Friendly Constraints
@@ -68,3 +69,4 @@ Backends should be small, pure functions over the AST. Each backend owns languag
 - Meta-tests assert the suite contains negative fixtures and diagnostic assertions.
 - Emitter tests compare deterministic output substrings and generated syntax shape.
 - Runner tests execute generated tests against temporary target modules and assert DSL source mapping on failure.
+- Runtime tests exercise mock server start, stop, verify, teardown, JSON request matching, and unmatched-request reporting. Socket-backed tests are skipped only when the sandbox blocks loopback sockets.
