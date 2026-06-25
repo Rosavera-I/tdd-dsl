@@ -136,7 +136,8 @@ def _swift_test_method_name(name: str) -> str:
     Swift test methods must start with 'test' and use camelCase.
     """
     # Remove special characters and normalize
-    normalized = re.sub(r'[^\w\s]', ' ', name)
+    normalized = re.sub(r'[_\-]+', ' ', name)
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
     normalized = re.sub(r'\s+', '_', normalized.strip())
     
     # Convert to camelCase with 'test' prefix
@@ -160,6 +161,8 @@ def _swift_test_method_name(name: str) -> str:
     result = result.rstrip('_')
     if len(result) <= 4:  # Just 'test' or 'test_'
         result = "testExample"
+    if len(result) > 4 and result[4].isdigit():
+        result = "testCase" + result[4:]
     
     return result
 
@@ -170,13 +173,21 @@ def _pascal_case(value: str) -> str:
     normalized = re.sub(r'[^\w\s]', ' ', value)
     normalized = re.sub(r'\s+', '_', normalized.strip())
     parts = normalized.split('_')
-    return ''.join(part.capitalize() for part in parts if part)
+    result = ''.join(part.capitalize() for part in parts if part)
+    if not result:
+        return "Generated"
+    if result[0].isdigit():
+        result = "Generated" + result
+    if result in _SWIFT_KEYWORDS:
+        result = f"{result}Generated"
+    return result
 
 
 def _swift_identifier(value: str) -> str:
     """Convert a string to a valid Swift identifier (camelCase)."""
     # Remove special characters
-    normalized = re.sub(r'[^\w\s]', ' ', value)
+    normalized = re.sub(r'[_\-]+', ' ', value)
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
     normalized = re.sub(r'\s+', '_', normalized.strip())
     parts = normalized.split('_')
     if not parts or not parts[0]:
@@ -187,6 +198,9 @@ def _swift_identifier(value: str) -> str:
     rest = [p.capitalize() for p in parts[1:] if p]
     result = first + ''.join(rest)
     
+    if result and result[0].isdigit():
+        result = "value" + result
+
     # Escape if keyword
     if result in _SWIFT_KEYWORDS:
         return f"`{result}`"
@@ -253,7 +267,7 @@ def _swift_dict_literal(value: dict) -> str:
     """Convert a dict to Swift dictionary literal."""
     if not value:
         return "[:]"
-    pairs = ", ".join(f"{_swift_string(k)}: {_swift_literal(v)}" for k, v in value.items())
+    pairs = ", ".join(f"{_swift_string(str(k))}: {_swift_literal(v)}" for k, v in value.items())
     return f"[{pairs}]"
 
 

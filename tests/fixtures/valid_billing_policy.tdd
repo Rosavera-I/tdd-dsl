@@ -3,6 +3,9 @@ target python "billing_policy"
 target typescript "billing-policy"
 target java "com.example.BillingPolicy"
 target kotlin "com.example.BillingPolicy"
+target go "billingpolicy"
+target csharp "BillingPolicy"
+target swift "BillingPolicy"
 target odin "billing_policy"
 
 case "grandfathers loyal customers onto the pro cap":

@@ -33,7 +33,16 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(result.document.suite, "Billing policy contract")
         self.assertEqual(
             [(target.language, target.module) for target in result.document.targets],
-            [("python", "billing_policy"), ("typescript", "billing-policy"), ("java", "com.example.BillingPolicy"), ("kotlin", "com.example.BillingPolicy"), ("odin", "billing_policy")],
+            [
+                ("python", "billing_policy"),
+                ("typescript", "billing-policy"),
+                ("java", "com.example.BillingPolicy"),
+                ("kotlin", "com.example.BillingPolicy"),
+                ("go", "billingpolicy"),
+                ("csharp", "BillingPolicy"),
+                ("swift", "BillingPolicy"),
+                ("odin", "billing_policy"),
+            ],
         )
         self.assertEqual(
             [case.name for case in result.document.cases],

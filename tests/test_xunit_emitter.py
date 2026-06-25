@@ -33,6 +33,7 @@ case "adds two numbers":
         output = emit_xunit(result.document, target_name="csharp")
 
         self.assertIn("public class CalculatorTests", output)
+        self.assertIn("using System.Collections.Generic;", output)
         self.assertIn("using Xunit;", output)
 
     def test_emits_test_method_with_camel_case(self) -> None:
@@ -112,6 +113,26 @@ case "adds two numbers":
 
         self.assertIn('var input = new Dictionary<string, object> { { "a", 1 }, { "b", 2 } };', output)
         self.assertIn("var result = calc.add(input);", output)
+
+    def test_emits_nested_dictionary_literals(self) -> None:
+        """Nested objects generate nested Dictionary values."""
+        source = '''
+suite "Billing"
+target csharp "BillingPolicy"
+
+case "calculates total":
+  given input:
+    {"account": {"plan": "legacy", "yearsActive": 7}, "usage": {"projects": 18}}
+  when call "QuoteSubscription"
+  then equals:
+    {"tier": "pro", "monthlyUsd": 49}
+'''
+        result = parse_text(source)
+        self.assertIsNotNone(result.document)
+        output = emit_xunit(result.document, target_name="csharp")
+
+        self.assertIn('new Dictionary<string, object> { { "plan", "legacy" }, { "yearsActive", 7 } }', output)
+        self.assertIn('Assert.Equal("pro", result["tier"]);', output)
 
     def test_emits_assertions_for_dict_expected(self) -> None:
         """Dictionary expected values generate multiple Assert.Equal calls."""

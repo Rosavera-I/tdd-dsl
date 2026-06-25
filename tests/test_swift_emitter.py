@@ -132,6 +132,26 @@ case "sorts numbers":
 
         self.assertIn("let input = [3, 1, 2]", output)
 
+    def test_emits_dictionary_literals_with_string_keys(self) -> None:
+        """Swift dictionary literals stringify JSON object keys safely."""
+        source = '''
+suite "Lookup"
+target swift "Lookup"
+
+case "returns dictionary":
+  given input:
+    "seed"
+  when call "makeLookup"
+  then equals:
+    {"1": "one", "two": 2}
+'''
+        result = parse_text(source)
+        self.assertIsNotNone(result.document)
+        output = emit_swift(result.document, target_name="swift")
+
+        self.assertIn('XCTAssertEqual(result.value1, "one")', output)
+        self.assertIn("XCTAssertEqual(result.two, 2)", output)
+
     def test_handles_null_values(self) -> None:
         """Null values emit as Swift nil."""
         source = '''
@@ -224,6 +244,27 @@ case "adds numbers once more":
 
         self.assertIn("func testAddsNumbers() throws", output)
         self.assertIn("func testAddsNumbersOnceMore() throws", output)
+
+    def test_sanitizes_digit_prefixed_names(self) -> None:
+        """Generated Swift identifiers do not start with digits."""
+        source = '''
+suite "123 math"
+target swift "Math"
+
+case "123 adds":
+  given input:
+    {"1st": 1}
+  when call "add"
+  then equals:
+    2
+'''
+        result = parse_text(source)
+        self.assertIsNotNone(result.document)
+        output = emit_swift(result.document, target_name="swift")
+
+        self.assertIn("final class Generated123MathTests: XCTestCase", output)
+        self.assertIn("func testCase123Adds() throws", output)
+        self.assertIn("Add(value1st: 1)", output)
 
     def test_cli_emits_swift(self) -> None:
         """CLI supports --target swift for emit command."""

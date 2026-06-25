@@ -10,7 +10,6 @@ Generates idiomatic C# xUnit tests with:
 
 from __future__ import annotations
 
-import json
 import re
 
 from pathlib import Path
@@ -46,6 +45,7 @@ def emit_xunit(document: Document, target_name: str = "csharp", source_path: str
     class_name = _pascal_case(simple_class_name) + "Tests"
     
     lines = [
+        "using System.Collections.Generic;",
         "using Xunit;",
         "",
     ]
@@ -150,13 +150,22 @@ def _source_map_comment(source_path: str | Path, case: Case) -> str:
 
 def _pascal_case(value: str) -> str:
     """Convert snake_case or kebab-case to PascalCase."""
-    parts = re.split(r'[_\-]', value)
-    return ''.join(part.capitalize() for part in parts if part)
+    value = re.sub(r'[^\w\s\-]', ' ', value)
+    parts = re.split(r'[\s_\-]+', value.strip())
+    result = ''.join(part.capitalize() for part in parts if part)
+    if not result:
+        return "Generated"
+    if result[0].isdigit():
+        result = "Generated" + result
+    if result in _CSHARP_KEYWORDS:
+        result += "Tests"
+    return result
 
 
 def _camel_case(value: str) -> str:
     """Convert a test name to valid camelCase C# method name."""
     # Remove special characters and normalize
+    value = re.sub(r'[_\-]+', ' ', value)
     value = re.sub(r'[^\w\s]', ' ', value)
     value = re.sub(r'\s+', '_', value.strip())
     parts = value.split('_')
@@ -247,7 +256,7 @@ def _csharp_map_literal(value: dict) -> str:
     if not value:
         return "new Dictionary<string, object>()"
     
-    items = ", ".join(f"{{ {_csharp_literal(k)}, {_csharp_literal(v)} }}" for k, v in value.items())
+    items = ", ".join(f"{{ {_csharp_string(str(k))}, {_csharp_literal(v)} }}" for k, v in value.items())
     return f"new Dictionary<string, object> {{ {items} }}"
 
 

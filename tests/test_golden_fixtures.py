@@ -38,6 +38,12 @@ class GoldenFixtureTests(unittest.TestCase):
             golden=GOLDENS / "go" / "valid_minimal_test.go",
         )
 
+    def test_go_golden_matches_billing_policy_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "go"),
+            golden=GOLDENS / "go" / "valid_billing_policy_test.go",
+        )
+
     def test_showcase_contract_emits_documentary_python(self) -> None:
         self.assertGolden(
             actual=_emit_fixture("valid_billing_policy.tdd", "python"),
@@ -99,6 +105,12 @@ class GoldenFixtureTests(unittest.TestCase):
             golden=GOLDENS / "csharp" / "valid_minimal.cs",
         )
 
+    def test_csharp_golden_matches_billing_policy_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "csharp"),
+            golden=GOLDENS / "csharp" / "valid_billing_policy.cs",
+        )
+
     def test_csharp_output_is_stable_across_repeated_emits(self) -> None:
         first = _emit_fixture("valid_minimal.tdd", "csharp")
         second = _emit_fixture("valid_minimal.tdd", "csharp")
@@ -109,6 +121,12 @@ class GoldenFixtureTests(unittest.TestCase):
         self.assertGolden(
             actual=_emit_fixture("valid_minimal.tdd", "swift"),
             golden=GOLDENS / "swift" / "valid_minimal.swift",
+        )
+
+    def test_swift_golden_matches_billing_policy_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "swift"),
+            golden=GOLDENS / "swift" / "valid_billing_policy.swift",
         )
 
     def test_swift_output_is_stable_across_repeated_emits(self) -> None:
