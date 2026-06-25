@@ -4,8 +4,10 @@ import unittest
 
 from tdd_dsl.emitters.gotest import emit_gotest
 from tdd_dsl.emitters.kotlin import emit_kotlin
+from tdd_dsl.emitters.lua import emit_lua
 from tdd_dsl.emitters.odin import emit_odin
 from tdd_dsl.emitters.pytest import emit_pytest
+from tdd_dsl.emitters.ruby import emit_rspec
 from tdd_dsl.emitters.rust import emit_rust
 from tdd_dsl.emitters.swift import emit_swift
 from tdd_dsl.emitters.vitest import emit_vitest
@@ -147,6 +149,42 @@ class GoldenFixtureTests(unittest.TestCase):
 
         self.assertEqual(first, second)
 
+    def test_lua_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "lua"),
+            golden=GOLDENS / "lua" / "valid_minimal.lua",
+        )
+
+    def test_lua_golden_matches_billing_policy_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "lua"),
+            golden=GOLDENS / "lua" / "valid_billing_policy.lua",
+        )
+
+    def test_lua_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "lua")
+        second = _emit_fixture("valid_minimal.tdd", "lua")
+
+        self.assertEqual(first, second)
+
+    def test_ruby_golden_matches_minimal_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_minimal.tdd", "ruby"),
+            golden=GOLDENS / "ruby" / "valid_minimal_spec.rb",
+        )
+
+    def test_ruby_golden_matches_billing_policy_fixture(self) -> None:
+        self.assertGolden(
+            actual=_emit_fixture("valid_billing_policy.tdd", "ruby"),
+            golden=GOLDENS / "ruby" / "valid_billing_policy_spec.rb",
+        )
+
+    def test_ruby_output_is_stable_across_repeated_emits(self) -> None:
+        first = _emit_fixture("valid_minimal.tdd", "ruby")
+        second = _emit_fixture("valid_minimal.tdd", "ruby")
+
+        self.assertEqual(first, second)
+
     def assertGolden(self, actual: str, golden: Path) -> None:
         if os.environ.get(UPDATE_ENV) == "1":
             golden.parent.mkdir(parents=True, exist_ok=True)
@@ -174,6 +212,10 @@ def _emit_fixture(name: str, target: str) -> str:
         return emit_swift(result.document, target_name="swift", source_path=f"tests/fixtures/{name}")
     if target == "kotlin":
         return emit_kotlin(result.document, target_name="kotlin", source_path=f"tests/fixtures/{name}")
+    if target == "lua":
+        return emit_lua(result.document, target_name="lua", source_path=f"tests/fixtures/{name}")
+    if target == "ruby":
+        return emit_rspec(result.document, target_name="ruby", source_path=f"tests/fixtures/{name}")
     raise ValueError(f"unsupported test target: {target}")
 
 

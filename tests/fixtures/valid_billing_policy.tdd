@@ -36,3 +36,6 @@ case "flags enterprise usage before charging":
       "requiresReview": true,
       "reason": "seat_count"
     }
+
+target lua "billing_policy"
+target ruby "billing_policy"

@@ -160,6 +160,8 @@ print(python_code)
 | 🦀 Rust | `rust` | std test | ✅ Stable | ✅ |
 | 🐹 Go | `go` | testing | ✅ Stable | ✅ |
 | ⚔️ Odin | `odin` | core:testing | ✅ Stable | ✅ |
+| 🌙 Lua | `lua` | busted | ✅ Stable | ⏳ |
+| 💎 Ruby | `ruby` | RSpec | ✅ Stable | ⏳ |
 | ⚡ Zig | `zig` | std.testing | 🚧 Planned | ⏳ |
 
 ---

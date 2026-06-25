@@ -42,6 +42,8 @@ class ParserTests(unittest.TestCase):
                 ("csharp", "BillingPolicy"),
                 ("swift", "BillingPolicy"),
                 ("odin", "billing_policy"),
+                ("lua", "billing_policy"),
+                ("ruby", "billing_policy"),
             ],
         )
         self.assertEqual(

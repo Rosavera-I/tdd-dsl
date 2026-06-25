@@ -9,12 +9,15 @@ from typing import Any
 from .emitters.gotest import emit_gotest
 from .emitters.junit import emit_junit
 from .emitters.kotlin import emit_kotlin
+from .emitters.lua import emit_lua
 from .emitters.odin import emit_odin
 from .emitters.pytest import emit_pytest
+from .emitters.ruby import emit_rspec
 from .emitters.rust import emit_rust
 from .emitters.swift import emit_swift
 from .emitters.vitest import emit_vitest
 from .emitters.xunit import emit_xunit
+from .lsp import main as lsp_main
 from .parser import parse_text
 from .runner import run_file
 
@@ -35,16 +38,18 @@ def main(argv: list[str] | None = None) -> int:
 
     emit = subcommands.add_parser("emit", help="emit tests from a .tdd file")
     emit.add_argument("file", type=Path)
-    emit.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift"], required=True)
+    emit.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift", "lua", "ruby"], required=True)
 
     run = subcommands.add_parser("run", help="generate and run tests from a .tdd file")
     run.add_argument("file", type=Path)
-    run.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift"], required=True)
+    run.add_argument("--target", choices=["python", "typescript", "java", "kotlin", "go", "rust", "odin", "csharp", "swift", "lua", "ruby"], required=True)
     run.add_argument("--cwd", type=Path, default=None, help="working directory for the generated test process")
 
     discover = subcommands.add_parser("discover", help="discover and validate .tdd files matching a pattern")
     discover.add_argument("pattern", help="glob pattern to match .tdd files (e.g., 'tests/**/*.tdd')")
     discover.add_argument("--format", choices=["text", "json"], default="text", help="output format")
+
+    subcommands.add_parser("lsp", help="run the experimental Language Server Protocol server over stdio")
 
     args = parser.parse_args(argv)
     if args.command == "validate":
@@ -57,6 +62,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run(args.file, args.target, args.cwd)
     if args.command == "discover":
         return _discover(args.pattern, args.format)
+    if args.command == "lsp":
+        return lsp_main()
 
     parser.error(f"unknown command: {args.command}")
     return 2
@@ -118,6 +125,12 @@ def _emit(path: Path, target: str) -> int:
     if target == "kotlin":
         print(emit_kotlin(result.document, target_name="kotlin", source_path=str(path) if path else None), end="")
         return 0
+    if target == "lua":
+        print(emit_lua(result.document, target_name="lua", source_path=str(path) if path else None), end="")
+        return 0
+    if target == "ruby":
+        print(emit_rspec(result.document, target_name="ruby", source_path=str(path) if path else None), end="")
+        return 0
 
     print(f"unsupported target: {target}")
     return 2
@@ -158,7 +171,7 @@ def _suggested_fix(message: str) -> str:
     if "duplicate" in message:
         return "Keep one declaration and remove or rename the duplicate."
     if "unsupported target" in message:
-        return "Use one of the supported targets: python or typescript."
+        return "Use one of the supported targets from the emit command."
     return "Review the DSL syntax near this location."
 
 

@@ -14,7 +14,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIsNone(result.document)
         messages = [diagnostic.message for diagnostic in result.diagnostics]
-        self.assertIn("unsupported target 'ruby'", messages)
+        self.assertIn("unsupported target 'php'", messages)
         self.assertIn("duplicate case name 'adds two numbers'; first declared at line 5", messages)
         self.assertIn(
             "python target requires object input keys to be valid parameter names in case 'adds two numbers'",

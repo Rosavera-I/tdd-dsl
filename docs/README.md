@@ -57,6 +57,8 @@ target go "calculator"
 target rust "calculator"
 target odin "calculator"
 target csharp "Calculator"
+target lua "calculator"
+target ruby "calculator"
 
 case "adds two numbers":
   given input:
@@ -95,6 +97,12 @@ PYTHONPATH=src python -m tdd_dsl emit --target odin calculator.tdd > calculator_
 
 # C#
 PYTHONPATH=src python -m tdd_dsl emit --target csharp calculator.tdd > CalculatorTests.cs
+
+# Lua
+PYTHONPATH=src python -m tdd_dsl emit --target lua calculator.tdd > calculator_spec.lua
+
+# Ruby
+PYTHONPATH=src python -m tdd_dsl emit --target ruby calculator.tdd > calculator_spec.rb
 ```
 
 ### Run the Tests
@@ -202,7 +210,7 @@ tdd-dsl validate --format json FILE  # LSP-compatible output
 Generate test code for a specific target:
 
 ```bash
-tdd-dsl emit --target python|typescript|java|csharp|go|rust|odin FILE
+tdd-dsl emit --target python|typescript|java|csharp|go|rust|odin|lua|ruby FILE
 ```
 
 ### `run`

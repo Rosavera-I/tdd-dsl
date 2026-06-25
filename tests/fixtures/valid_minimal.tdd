@@ -15,3 +15,6 @@ case "adds two numbers":
   when call "add"
   then equals:
     5
+
+target lua "calculator"
+target ruby "calculator"
