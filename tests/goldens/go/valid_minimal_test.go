@@ -1,7 +1,6 @@
 package calculator
 
 import (
-    "encoding/json"
     "reflect"
     "testing"
 )

@@ -54,6 +54,7 @@ case "adds two numbers":
         self.assertIn('import (', output)
         self.assertIn('"testing"', output)
         self.assertIn('"reflect"', output)
+        self.assertNotIn('"encoding/json"', output)
 
     def test_emits_test_function_with_test_prefix(self) -> None:
         """Test functions use TestXxx naming convention."""
@@ -131,6 +132,27 @@ case "adds two numbers":
         output = emit_gotest(result.document, target_name="go")
 
         self.assertIn('map[string]interface{}{"a": 1, "b": 2}', output)
+
+    def test_emits_nested_map_literals_without_json_unmarshal(self) -> None:
+        """Nested objects remain Go literals instead of lossy JSON interface{} values."""
+        source = '''
+suite "Billing"
+target go "billing"
+
+case "calculates total":
+  given input:
+    {"account": {"plan": "legacy", "yearsActive": 7}, "usage": {"projects": 18}}
+  when call "quoteSubscription"
+  then equals:
+    {"tier": "pro", "monthlyUsd": 49}
+'''
+        result = parse_text(source)
+        self.assertIsNotNone(result.document)
+        output = emit_gotest(result.document, target_name="go")
+
+        self.assertIn('"account": map[string]interface{}{"plan": "legacy", "yearsActive": 7}', output)
+        self.assertIn('"monthlyUsd": 49', output)
+        self.assertNotIn("json.Unmarshal", output)
 
     def test_emits_slice_literal_for_list_input(self) -> None:
         """List inputs generate []interface{} literals."""
@@ -230,6 +252,33 @@ case "adds":
         output = emit_gotest(result.document, target_name="go")
 
         self.assertIn("package calculator", output)
+
+    def test_generates_unique_test_function_names(self) -> None:
+        """Similar names that normalize identically get deterministic suffixes."""
+        source = '''
+suite "Duplicates"
+target go "duplicates"
+
+case "same name":
+  given input:
+    1
+  when call "identity"
+  then equals:
+    1
+
+case "same_name":
+  given input:
+    2
+  when call "identity"
+  then equals:
+    2
+'''
+        result = parse_text(source)
+        self.assertIsNotNone(result.document)
+        output = emit_gotest(result.document, target_name="go")
+
+        self.assertIn("func TestSameName(t *testing.T)", output)
+        self.assertIn("func TestSameName2(t *testing.T)", output)
 
     def test_cli_emits_go(self) -> None:
         """CLI supports --target go for emit command."""

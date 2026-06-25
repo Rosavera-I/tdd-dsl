@@ -4,13 +4,12 @@ Generates idiomatic Go tests using the standard testing package with:
 - Proper package declarations and imports
 - CamelCase test function names following Go conventions
 - Table-driven tests where appropriate
-- JSON literals using structs or maps
+- Recursive Go literals using slices and maps
 - t.Errorf for assertions
 """
 
 from __future__ import annotations
 
-import json
 import re
 
 from pathlib import Path
@@ -35,15 +34,15 @@ def emit_gotest(document: Document, target_name: str = "go", source_path: str | 
         f"package {package_name}",
         "",
         "import (",
-        '    "encoding/json"',
         '    "reflect"',
         '    "testing"',
         ")",
         "",
     ]
 
+    used_names: set[str] = set()
     for case in document.cases:
-        func_name = _go_test_name(case.name)
+        func_name = _unique_name(_go_test_name(case.name), used_names)
         if source_path is not None:
             lines.append(_source_map_comment(source_path, case))
         lines.append(f"func {func_name}(t *testing.T) {{")
@@ -98,7 +97,8 @@ def _go_test_name(case_name: str) -> str:
     Go convention: TestXxx where Xxx is PascalCase description.
     """
     # Remove special characters and normalize
-    name = re.sub(r'[^\w\s]', ' ', case_name)
+    name = re.sub(r'[_\-]+', ' ', case_name)
+    name = re.sub(r'[^\w\s]', ' ', name)
     words = name.split()
     
     # Capitalize each word and join
@@ -116,6 +116,19 @@ def _go_test_name(case_name: str) -> str:
         result = "Test" + result
     
     return result
+
+
+def _unique_name(base: str, used: set[str]) -> str:
+    """Generate a unique Go test name by appending a numeric suffix."""
+    if base not in used:
+        used.add(base)
+        return base
+    index = 2
+    while f"{base}{index}" in used:
+        index += 1
+    name = f"{base}{index}"
+    used.add(name)
+    return name
 
 
 def _test_body(case: Case, target: Target) -> list[str]:
@@ -136,17 +149,8 @@ def _test_body(case: Case, target: Target) -> list[str]:
     
     # Generate input variable
     input_literal = _go_literal(input_value)
-    if '\n' in input_literal or len(input_literal) > 60:
-        # Multi-line or long literal - use JSON unmarshaling
-        lines.append(f"    inputJSON := `{_escape_backticks(json.dumps(input_value))}`")
-        lines.append("    var input interface{}")
-        lines.append("    if err := json.Unmarshal([]byte(inputJSON), &input); err != nil {")
-        lines.append("        t.Fatalf(\"failed to unmarshal input: %v\", err)")
-        lines.append("    }")
-        input_arg = "input"
-    else:
-        lines.append(f"    input := {input_literal}")
-        input_arg = "input"
+    lines.append(f"    input := {input_literal}")
+    input_arg = "input"
     
     # Call the function under test
     lines.append(f"    result := {call_name}({input_arg})")
@@ -154,22 +158,10 @@ def _test_body(case: Case, target: Target) -> list[str]:
     
     # Generate expected and assertion
     expected_literal = _go_literal(expected_value)
-    if '\n' in expected_literal or len(expected_literal) > 60:
-        # Multi-line or long literal - use JSON unmarshaling
-        lines.append(f"    expectedJSON := `{_escape_backticks(json.dumps(expected_value))}`")
-        lines.append("    var expected interface{}")
-        lines.append("    if err := json.Unmarshal([]byte(expectedJSON), &expected); err != nil {")
-        lines.append("        t.Fatalf(\"failed to unmarshal expected: %v\", err)")
-        lines.append("    }")
-        lines.append("    if !reflect.DeepEqual(result, expected) {")
-        lines.append('        t.Errorf("expected %v, got %v", expected, result)')
-        lines.append("    }")
-    else:
-        # Simple comparison
-        lines.append(f"    expected := {expected_literal}")
-        lines.append("    if !reflect.DeepEqual(result, expected) {")
-        lines.append('        t.Errorf("expected %v, got %v", expected, result)')
-        lines.append("    }")
+    lines.append(f"    expected := {expected_literal}")
+    lines.append("    if !reflect.DeepEqual(result, expected) {")
+    lines.append('        t.Errorf("expected %v, got %v", expected, result)')
+    lines.append("    }")
     
     return lines
 
@@ -237,10 +229,5 @@ def _go_map_literal(value: dict) -> str:
     return "map[string]interface{}{" + pairs + "}"
 
 
-def _escape_backticks(s: str) -> str:
-    """Escape backticks for raw string literals."""
-    return s.replace('`', '` + "`" + `')
-
-
 def _source_map_comment(source_path: str | Path, case: Case) -> str:
-    return f"// Source: {source_path}:{case.line}"
+    return f"// Source: {Path(source_path).as_posix()}:{case.line}"
